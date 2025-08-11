@@ -207,7 +207,7 @@ void process_range(
     full_data_batch.reserve(BATCH_SIZE);
     pubkeys_batch.reserve(BATCH_SIZE);
 
-    // Используем raw pointers для совместимости с OpenSSL API
+    // РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ raw pointers РґР»СЏ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚Рё СЃ OpenSSL API
     std::vector<BIGNUM*> r_batch(BATCH_SIZE);
     for (size_t i = 0; i < BATCH_SIZE; ++i) {
         r_batch[i] = BN_new();
@@ -217,12 +217,12 @@ void process_range(
     while (iterations < max_iterations && !stop_flag) {
         int current_batch_size = std::min<int>(BATCH_SIZE, static_cast<int>(max_iterations - iterations));
 
-        // Генерация случайных значений
+        // Р“РµРЅРµСЂР°С†РёСЏ СЃР»СѓС‡Р°Р№РЅС‹С… Р·РЅР°С‡РµРЅРёР№
         ctx.generate_random_r_batch(r_batch.data(), current_batch_size);
 
-        // Обработка батча
+        // РћР±СЂР°Р±РѕС‚РєР° Р±Р°С‚С‡Р°
         for (int i = 0; i < current_batch_size && !stop_flag; ++i, ++iterations) {
-            // Вычисления эллиптической кривой
+            // Р’С‹С‡РёСЃР»РµРЅРёСЏ СЌР»Р»РёРїС‚РёС‡РµСЃРєРѕР№ РєСЂРёРІРѕР№
             EC_POINT_mul(group, ctx.R_times_G, r_batch[i], nullptr, nullptr, ctx.ctx);
             EC_POINT_copy(ctx.numerator, G);
             EC_POINT_invert(group, ctx.R_times_G, ctx.ctx);
@@ -231,7 +231,7 @@ void process_range(
             EC_POINT_copy(ctx.P_target, P1);
             EC_POINT_add(group, ctx.P_target, ctx.P_target, ctx.P_diff, ctx.ctx);
 
-            // Форматирование результатов
+            // Р¤РѕСЂРјР°С‚РёСЂРѕРІР°РЅРёРµ СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ
             char* r_str = BN_bn2dec(r_batch[i]);
             char* pubkey = EC_POINT_point2hex(group, ctx.P_target, POINT_CONVERSION_COMPRESSED, ctx.ctx);
 
@@ -241,7 +241,7 @@ void process_range(
             OPENSSL_free(r_str);
             OPENSSL_free(pubkey);
 
-            // Отправка на запись при заполнении буфера
+            // РћС‚РїСЂР°РІРєР° РЅР° Р·Р°РїРёСЃСЊ РїСЂРё Р·Р°РїРѕР»РЅРµРЅРёРё Р±СѓС„РµСЂР°
             if (full_data_batch.size() >= WRITE_BUFFER_SIZE) {
                 writer.write_batch(std::move(full_data_batch), std::move(pubkeys_batch));
                 full_data_batch.clear();
@@ -250,12 +250,12 @@ void process_range(
         }
     }
 
-    // Запись оставшихся данных
+    // Р—Р°РїРёСЃСЊ РѕСЃС‚Р°РІС€РёС…СЃСЏ РґР°РЅРЅС‹С…
     if (!full_data_batch.empty()) {
         writer.write_batch(std::move(full_data_batch), std::move(pubkeys_batch));
     }
 
-    // Освобождение памяти
+    // РћСЃРІРѕР±РѕР¶РґРµРЅРёРµ РїР°РјСЏС‚Рё
     for (auto& r : r_batch) {
         BN_free(r);
     }
@@ -384,7 +384,7 @@ int main(int argc, char* argv[]) {
         std::atomic<bool> stop_flag(false);
         auto start_time = std::chrono::high_resolution_clock::now();
 
-        // Запуск рабочих потоков
+        // Г‡Г ГЇГіГ±ГЄ Г°Г ГЎГ®Г·ГЁГµ ГЇГ®ГІГ®ГЄГ®Гў
         workers.reserve(num_threads);
         for (unsigned i = 0; i < num_threads; ++i) {
             workers.emplace_back(process_range, group, P1, D, inv_D,
@@ -393,7 +393,7 @@ int main(int argc, char* argv[]) {
                 iterations_per_thread);
         }
 
-        // Ожидание завершения работы
+        // Р—Р°РїСѓСЃРє СЂР°Р±РѕС‡РёС… РїРѕС‚РѕРєРѕРІ
         for (auto& t : workers) {
             if (t.joinable()) {
                 t.join();
@@ -410,7 +410,7 @@ int main(int argc, char* argv[]) {
             std::cout << " - Pubkeys only: " << pubkeys_file << "\n";
         }
 
-        // Освобождение ресурсов
+        // РћСЃРІРѕР±РѕР¶РґРµРЅРёРµ СЂРµСЃСѓСЂСЃРѕРІ
         BN_free(range_size);
         BN_free(start_r);
         BN_free(end_r);
@@ -426,4 +426,5 @@ int main(int argc, char* argv[]) {
     }
 
     return 0;
+
 }
