@@ -7,8 +7,8 @@
 #include <queue>
 #include <atomic>
 #include <condition_variable>
-#include <cstdio>      // для fileno()
-#include <unistd.h>    // для isatty()
+#include <cstdio>
+#include <unistd.h>
 #include <boost/program_options.hpp>
 #include <openssl/bn.h>
 #include <openssl/ec.h>
@@ -16,12 +16,12 @@
 
 namespace po = boost::program_options;
 
-// Конфигурация для записи в файл
+//
 constexpr size_t FILE_MAX_QUEUE_SIZE = 10000000;
 constexpr size_t FILE_WRITER_BATCH_SIZE = 100000;
 constexpr size_t FILE_WORKER_BUFFER_SIZE = 100000;
 
-// Конфигурация для pipe (стороннее приложение)
+// 
 constexpr size_t PIPE_MAX_QUEUE_SIZE = 4000000;
 constexpr size_t PIPE_WRITER_BATCH_SIZE = 400000;
 constexpr size_t PIPE_WORKER_BUFFER_SIZE = 400000;
@@ -53,7 +53,7 @@ void writer_thread(const Config& config) {
     batch.reserve(batch_size);
 
     if (!config.use_stdout) {
-        // Режим записи в файл
+        //
         std::ofstream outfile(config.output, std::ios::app | std::ios::binary);
         outfile.sync_with_stdio(false);
 
@@ -84,7 +84,7 @@ void writer_thread(const Config& config) {
         outfile.close();
     }
     else {
-        // Режим pipe (стороннее приложение)
+        // 
         setvbuf(stdout, nullptr, _IONBF, 0);
         std::ios::sync_with_stdio(false);
 
@@ -246,9 +246,9 @@ int main(int argc, char* argv[]) {
     config.threads = vm["t"].as<int>();
     config.use_stdout = !vm.count("o");
 
-    // Определяем, работаем ли мы с pipe (сторонним приложением)
+    // 
     if (config.use_stdout) {
-        config.is_pipe = (isatty(fileno(stdout)) == 0); // Проверяем, является ли stdout pipe
+        config.is_pipe = (isatty(fileno(stdout)) == 0);
     }
     else {
         config.is_pipe = false;
@@ -287,4 +287,5 @@ int main(int argc, char* argv[]) {
     BN_CTX_free(ctx);
 
     return 0;
+
 }
